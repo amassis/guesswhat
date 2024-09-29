@@ -11,8 +11,12 @@ const crypto = require('crypto'); // criptography
 const compression = require('compression'); // Compresses all texts sent to client
 // const cors = require('cors'); // Cross Origin Resource Sharing - allow SPI calls from other domains
 const AppError = require('./utils/appError');
+const { DEBUG, debug } = require('./utils/debug');
+
 const globalErrorHandler = require('./controllers/errorController');
 const viewRouter = require('./routes/viewRoutes');
+const typeRouter = require('./routes/typeRoutes');
+const elementRouter = require('./routes/elementRoutes');
 
 const app = express();
 // tells app to trust proxies (Heroku works as proxy)
@@ -135,7 +139,8 @@ app.use((req, res, next) => {
 // 3) ROUTES
 
 app.use('/', viewRouter);
-// app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/types', typeRouter);
+app.use('/api/v1/elements', elementRouter);
 
 //All other routes are 404
 app.all('*', (req, res, next) => {

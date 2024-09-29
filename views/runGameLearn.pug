@@ -1,0 +1,16 @@
+extends base
+
+block content 
+  main.main
+    h1.page-title= runStrings.title
+      h1.page-subtitle= runStrings.subtitle
+      form#run-game.form(data-from-element=`${element._id}` data-type-id=`${type._id}` data-language=`${type.language}` data-msg=`${runStrings.newElementMsg}` )
+        .form__group
+          label#lbl-example.form__label.input__example(for='example')= runStrings.yourElement
+          input#example.form__input(type='text', placeholder='', required)
+        .form__group
+          label#lbl-question.form__label.input__question.input__inactive(for='question')= runStrings.question
+          input#question.form__input.input__question.input__inactive(type='text', placeholder='', required)
+
+        h1.page-subtitle.input__inactive= runStrings.thanks
+        button#send.btn--green.btn--small.input__inactive(data-from-operation=`${operation}` data-from-element-left=`${element.leftNode}` data-from-element-right=`${element.rightNode}`)= runStrings.send

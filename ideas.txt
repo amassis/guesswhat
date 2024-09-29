@@ -1,0 +1,9 @@
+- Store characteristics as an array for each type
+- store characteristics "true" for each element of that type.
+- For every question, narrow down - filtering the elements that match.
+- When there is one match, take a guess.
+- If not right, enter a new element, and request a new characteristic. (Gen AI could tell an additional characteristic for that type that identifies the element?)
+
+- Implement messages in the Error Controler to handle all errors with appropriate error messages, even the operational ones that could be caught elsewhere.
+- Implement a home page for language selection
+- Implement language as a property of type.

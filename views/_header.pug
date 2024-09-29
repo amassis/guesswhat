@@ -1,5 +1,6 @@
 header.header
   nav.nav.nav--guess 
-    a.nav__el(href='/') Home
-  .header__logo   
-    img(src='/img/logo-white.png', alt='A logo')
+    //- a.nav__el(href='/') Guess what?
+  .header__logo
+    a(href=`/${home}`)
+      img(src='/img/logo/gwlogo2.png', alt='GuessWhat? logo')

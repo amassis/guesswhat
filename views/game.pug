@@ -1,0 +1,58 @@
+extends base
+
+block content 
+  main.main
+    h1.page-title= gameStrings.title
+
+    h2.page-subtitle= gameStrings.subtitle
+
+    .card-container
+      .card
+        .card__header
+          .card__picture
+          a(href=`/game/${language}/addType`)
+            img.card__picture-img.plus__sign-img(src='/img/plus.jpg', alt='Add')
+        .card__footer &nbsp;
+      each type in types
+        .card
+          .card__header
+            .card__picture
+              .card__picture-overlay &nbsp;
+              img.card__picture-img(src=`/img/types/${type.image}`, alt=`${type.type.singular}`)
+            h3.card__heading(data-bg1-color=`${type.color.bg1}`, data-bg2-color=`${type.color.bg2}`, data-font-color=`${type.color.font}`)
+              span= type.elements.length
+          .card__footer
+            h3.card__footing(data-bg1-color=`${type.color.bg1}`, data-bg2-color=`${type.color.bg2}`, data-font-color=`${type.color.font}`)
+              a(href=`/rungame/${type._id}/${type.elements[0]}/root/ask/${type.elements[0]}`)
+                if (plural)
+                  span= type.type.plural
+                else 
+                  span= type.type.singular
+
+    //-         .card__data
+    //-           svg.card__icon
+    //-             use(xlink:href='/img/icons.svg#icon-map-pin')
+    //-           span= tour.startLocation.description
+    //-         .card__data
+    //-           svg.card__icon
+    //-             use(xlink:href='/img/icons.svg#icon-calendar')
+    //-           span= `${tour.startDates[0].toLocaleString('en-US', { month: 'long', year: 'numeric'})}` 
+    //-         .card__data
+    //-           svg.card__icon
+    //-             use(xlink:href='/img/icons.svg#icon-flag')
+    //-           span= `${tour.locations.length} stop${tour.locations.length>1?'s':''}`
+    //-         .card__data
+    //-           svg.card__icon
+    //-             use(xlink:href='/img/icons.svg#icon-user')
+    //-           span= `${tour.maxGroupSize} people`
+
+    //-       .card__footer
+    //-         p
+    //-           span.card__footer-value= `$${tour.price}`
+    //-           | 
+    //-           span.card__footer-text per person
+    //-         p.card__ratings
+    //-           span.card__footer-value= tour.ratingsAverage 
+    //-           | 
+    //-           span.card__footer-text= `rating (${tour.ratingsQuantity})`
+    //-         a.btn.btn--green.btn--small(href=`/tour/${tour.slug}`) Details

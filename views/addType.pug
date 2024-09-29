@@ -1,0 +1,32 @@
+extends base
+
+block content 
+  main.main
+    h1.page-title= addStrings.title
+      form#create-type.form( data-msg=`${addStrings.newTypeMsg}`)
+        .form__group
+          label#lbl-singular.form__label.input__singular(for='singular')= addStrings.useSingular
+          input#singular.form__input.input__singular(type='text', placeholder='Object', required)
+        .form__group
+          label#lbl-plural.form__label.input__plural.input__inactive(for='plural')= addStrings.plural
+          input#plural.form__input.input__plural.input__inactive(type='text', placeholder='Objects', required)
+        .form__group
+          label#lbl-example.form__label.input__example.input__inactive(for='example')= addStrings.example
+          input#example.form__input.input__inactive(type='text', placeholder='Example of object', required)
+        .form__group
+          label#lbl-question.form__label.input__question.input__inactive(for='question')= addStrings.question
+          input#question.form__input.input__inactive(type='text', placeholder='Question to identify example of object', required)
+        //- .form__group
+          //- label#lbl-answer.form__label.input__answer.input__inactive= addStrings.answer
+          //- input#answer.form__input.input__inactive(type='text', placeholder='Example of object', required)
+
+          //- fieldset.input__inactive
+          //-   //- legend#lbl-fieldset= addStrings.answer
+          //-   .yes__no-option
+          //-     input#input-yes(type="checkbox" name="input-yes" )
+          //-     label#lbl-input-yes(for="input-yes")= addStrings.yesString
+          //-   .yes__no-option
+          //-     input#input-no(type="checkbox" name="input-no" )
+          //-     label#lbl-input-no(for="input-no")= addStrings.noString
+        h1.page-subtitle.input__inactive= addStrings.thanks
+        button#done.btn--green.btn--small.input__inactive= addStrings.done
