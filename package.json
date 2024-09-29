@@ -26,8 +26,8 @@
 		"node": "^20"
 	},
 	"scripts": {
-		"start": "nodemon --trace-warnings server.js",
-		"start:prod": "node server.js",
+		"start:dev": "nodemon --trace-warnings server.js",
+		"start": "node server.js",
 		"watch": "parcel watch ./public/js/index.js --dist-dir ./public/js/bundled",
 		"build": "parcel build ./public/js/index.js --dist-dir ./public/js/bundled"
 	},
