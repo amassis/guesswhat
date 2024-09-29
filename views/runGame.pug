@@ -8,9 +8,9 @@ block content
         .form__group
           - if (!isGuess)
             label#lbl-question.form__label.input__question(for='question')= element.question
-            a#button-yes.btn.btn--green.btn--small(href=`/rungame/${type._id}/${element._id}/${destination.prevElement}/${destination.operationLeft}/${destination.nextnodeLeft}`)= runStrings.yesString
-            a#button-no.btn.btn--green.btn--small(href=`/rungame/${type._id}/${element._id}/${destination.prevElement}/${destination.operationRight}/${destination.nextnodeRight}`)= runStrings.noString
+            a#button-yes.btn.btn--green.btn--small(href=`/rungame/${type._id}/${element._id}/${destination.operationLeft}/${destination.nextnodeLeft}${query}`)= runStrings.yesString
+            a#button-no.btn.btn--green.btn--small(href=`/rungame/${type._id}/${element._id}/${destination.operationRight}/${destination.nextnodeRight}${query}`)= runStrings.noString
           - if (isGuess)
             label#lbl-question.form__label.input__question(for='question')= runStrings.guess
-            a#button-yes.btn.btn--green.btn--small(href=`/rungame/${type._id}/${element._id}/${destination.prevElement}/${destination.operationLeft}/${destination.nextnodeLeft}`)= runStrings.yesString
-            a#button-no.btn.btn--green.btn--small(href=`/rungame/${type._id}/${element._id}/${destination.prevElement}/${destination.operationRight}/${destination.nextnodeRight}`)= runStrings.noString
+            a#button-yes.btn.btn--green.btn--small(href=`/rungame/${type._id}/${element._id}/${destination.operationLeft}/${destination.nextnodeLeft}${query}`)= runStrings.yesString
+            a#button-no.btn.btn--green.btn--small(href=`/rungame/${type._id}/${element._id}/${destination.operationRight}/${destination.nextnodeRight}${query}`)= runStrings.noString

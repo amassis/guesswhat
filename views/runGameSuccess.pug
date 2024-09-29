@@ -4,3 +4,8 @@ block content
   main.main
     h1.page-title= runStrings.title
       h1.page-subtitle= runStrings.subtitle
+      form#run-game-success.form
+        a.btn.btn--green.btn--small(href=`/rungame/${type._id}/${type.elements[0]}/ask/${type.elements[0]}`)
+          span= runStrings.letsGoSame 
+        a.btn.btn--green.btn--small(href=`/game/${type.language}`)
+          span= runStrings.letsGoDifferent

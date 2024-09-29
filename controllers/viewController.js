@@ -7,7 +7,7 @@ const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 const messages = require('../utils/messages');
 const elementController = require('./elementController');
-const { DEBUG, debug, fctName } = require('../utils/debug');
+let { DEBUG, debug, fctName } = require('../utils/debug');
 const { chdir } = require('process');
 
 countElementsForType = catchAsync(async (type) => {
@@ -25,6 +25,7 @@ exports.resetType = (req, res, next) => {
 	let debugStep = 0;
 	const debugLevel = 1;
 	const debugMe = 'resetType ';
+	DEBUG = false;
 
 	res.locals.type = '';
 	if (DEBUG) debug(debugLevel, res.locals.type, 'Here is res.locals.type after reset ', debugMe, ++debugStep);
@@ -35,6 +36,7 @@ exports.setType = async (req, res, next) => {
 	let debugStep = 0;
 	const debugLevel = 1;
 	const debugMe = 'setType ';
+	DEBUG = false;
 
 	const { typeId } = req.params;
 
@@ -46,7 +48,6 @@ exports.setType = async (req, res, next) => {
 	if (DEBUG) debug(debugLevel, type, 'Here is the type I found ', debugMe, ++debugStep);
 
 	res.locals.type = type;
-	if (DEBUG) debug(debugLevel, res.locals.type, 'Here is res.locals.type after set ', debugMe, ++debugStep);
 	next();
 };
 
@@ -72,6 +73,7 @@ exports.goHome = catchAsync(async (req, res, next) => {
 	let debugStep = 0;
 	const debugLevel = 1;
 	const debugMe = 'goHome';
+	DEBUG = false;
 
 	// load langs with strings for all three languages
 	const langs = [];
@@ -94,6 +96,7 @@ exports.goToGame = catchAsync(async (req, res, next) => {
 	let debugStep = 0;
 	const debugLevel = 1;
 	const debugMe = 'goToGame';
+	DEBUG = false;
 
 	if (DEBUG) debug(debugLevel, req.params, 'Parameters - should have lang', debugMe, ++debugStep);
 
@@ -129,6 +132,7 @@ exports.addType = catchAsync(async (req, res, next) => {
 	let debugStep = 0;
 	const debugLevel = 1;
 	const debugMe = 'addType';
+	DEBUG = false;
 
 	if (DEBUG) debug(debugLevel, req.params, 'Parameters - should have lang', debugMe, ++debugStep);
 
@@ -221,46 +225,37 @@ const prepareDestinations = async (prevElement, currentElement, operation) => {
 		// response.operationRight = operation === 'guessLeft' ? 'learnRight' : 'learnLeft';
 		response.nextnodeLeft = elementId;
 		response.nextnodeRight = prevElement;
-		response.prevElement = elementId;
 	} else {
 		if (left) {
-			if (left === prevElement) {
+			if (prevElement.includes(left)) {
 				response.operationLeft = 'guessLeft';
 				response.nextnodeLeft = left;
-				response.prevElement = prevElement;
 			} else if (left === elementId) {
 				response.operationLeft = 'guessLeft';
 				response.nextnodeLeft = left;
-				response.prevElement = elementId;
 			} else {
 				response.operationLeft = 'ask';
 				response.nextnodeLeft = left;
-				response.prevElement = prevElement;
 			}
 		} else {
 			response.operationLeft = 'learnLeft';
 			response.nextnodeLeft = elementId;
-			response.prevElement = prevElement;
 		}
 
 		if (right) {
-			if (right === prevElement) {
+			if (prevElement.includes(right)) {
 				response.operationRight = 'guessRight';
 				response.nextnodeRight = right;
-				response.prevElement = prevElement;
 			} else if (right === elementId) {
 				response.operationRight = 'guessRight';
 				response.nextnodeRight = right;
-				response.prevElement = elementId;
 			} else {
 				response.operationRight = 'ask';
 				response.nextnodeRight = right;
-				response.prevElement = prevElement;
 			}
 		} else {
 			response.operationRight = 'learnRight';
 			response.nextnodeRight = elementId;
-			response.prevElement = prevElement;
 		}
 	}
 	// const leftNode = element.leftNode?.toString();
@@ -341,14 +336,25 @@ exports.runGame = catchAsync(async (req, res, next) => {
 	// Quando eu disse que late e criei a foca, em vez de a foca se relacionar com o left do dog, ficou com o right e sobrepôs Lion.
 	// assim, o "From" que eu estou passando está errado. No Guess tem que manter a o Left/Right da operação anterior e não do próprio Guess.
 	if (DEBUG) debug(debugLevel, req.params, 'INIT - Parameters received', debugMe, ++debugStep);
-	let { typeId, elementId, prevElement, operation, nextElement } = req.params;
-
+	let { typeId, elementId, operation, nextElement } = req.params;
+	if (DEBUG) debug(debugLevel, req.query, 'INIT - Query received', debugMe, ++debugStep);
+	let prevElement = [];
+	const queryPrevious = req.query.eID;
+	if (queryPrevious) {
+		if (typeof queryPrevious === 'object') {
+			// query already brings an array
+			prevElement = [...queryPrevious];
+		} else {
+			// query brings only one eID, push to empty array
+			prevElement.push(queryPrevious);
+		}
+	}
 	let page = 'runGame';
 	if (operation && operation.startsWith('learn')) page = 'runGameLearn';
 	if (operation && operation === 'success') page = `runGameSuccess`;
 	//if (!operation.startsWith('guess')) {
-	prevElement = elementId;
 	//}
+	prevElement.push(nextElement);
 	elementId = nextElement;
 
 	if (DEBUG)
@@ -392,10 +398,15 @@ exports.runGame = catchAsync(async (req, res, next) => {
 	// Load runStrings in correct Language
 	const language = type.language;
 	const runStrings = {};
+	runStrings.title = await messages('letsPlayGuess', language);
+	runStrings.subtitle = await messages('thinkAboutElement_SINGULAR', language, type.type.singular);
+
 	if (operation) {
 		if (operation === 'success') {
 			runStrings.title = await messages('success_ELEMENT', language, element.name);
 			runStrings.subtitle = await messages('gameWins', language);
+			runStrings.letsGoSame = await messages('letsGoSame', language);
+			runStrings.letsGoDifferent = await messages('letsGoDifferent', language);
 		}
 		if (operation.startsWith('learn')) {
 			runStrings.title = await messages('playerWins', language);
@@ -411,11 +422,10 @@ exports.runGame = catchAsync(async (req, res, next) => {
 		}
 		if (operation.startsWith('guess')) runStrings.guess = await messages('validate_ELEMENT', language, element.name);
 	}
-	runStrings.title = await messages('letsPlayGuess', language);
-	runStrings.subtitle = await messages('thinkAboutElement_SINGULAR', language, type.type.singular);
 	runStrings.yesString = await messages('yes', language);
 	runStrings.noString = await messages('no', language);
 	const isGuess = operation.startsWith('guess');
+	query = `?eID=${prevElement.join('&eID=')}`; // sends all tree in query
 
 	if (DEBUG) debug(debugLevel, destination, 'Destinations for page', debugMe, ++debugStep);
 	// Render runGame page
@@ -428,6 +438,7 @@ exports.runGame = catchAsync(async (req, res, next) => {
 		destination,
 		operation,
 		isGuess,
+		query,
 	});
 });
 

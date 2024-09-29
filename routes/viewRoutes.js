@@ -44,7 +44,7 @@ router.get(
 	viewController.runGame,
 );
 router.get(
-	'/rungame/:typeId/:elementId/:prevElement/:operation/:nextElement',
+	'/rungame/:typeId/:elementId/:operation/:nextElement',
 	// viewController.loadFooterStrings,
 	viewController.setType,
 	viewController.runGame,

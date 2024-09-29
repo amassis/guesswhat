@@ -483,6 +483,7 @@ h3 {
 .btn:visited {
 	font-size: 1.6rem;
 	padding: 1.4rem 3rem;
+	margin-right: 1rem;
 	border-radius: 10rem;
 	text-transform: uppercase;
 	display: inline-block;
