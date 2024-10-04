@@ -3,11 +3,9 @@ import axios from 'axios';
 import { showAlert } from './alerts';
 
 const updateElement = async (elementId, leftNode, rightNode) => {
-	console.log('Here is UPDATE');
-	console.log(elementId, leftNode, rightNode);
+	// console.log('Here is UPDATE');
+	// console.log(elementId, leftNode, rightNode);
 
-	// if (leftNode !== null) leftNode = leftNode.toString();
-	// if (rightNode) rightNode = rightNode.toString();
 	const api = `/api/v1/elements/${elementId}`;
 	const data = {
 		leftNode,
@@ -56,10 +54,11 @@ export const createElement = async (data, parameters = {}) => {
 
 		// successfull
 		if (res.data.status === 'success') {
-			if (fromOperation !== 'firstElement') {
-				const newElementId = res.data.data.elements._id;
+			const newElementId = res.data.data.elements._id;
+			let newLeftNode, newRightNode;
 
-				let leftNode, rightNode, newLeftNode, newRightNode;
+			if (fromOperation !== 'firstElement') {
+				let leftNode, rightNode;
 
 				if (fromOperation === 'learnLeft') {
 					// from Element new leftNode is the new element;
@@ -82,18 +81,25 @@ export const createElement = async (data, parameters = {}) => {
 				}
 
 				// Update the from Element binary tree data with a pointer to the new element
-				console.log(fromElement);
-				console.log('Will update FROM Element', fromElement);
+				// console.log(fromElement);
+				// console.log('Will update FROM Element', fromElement);
 				await updateElement(fromElement, leftNode, rightNode);
 				await updateElement(newElementId, newLeftNode, newRightNode);
+			} else {
+				// First Elements only
+				// new Element leftNode is itself
+				newLeftNode = newElementId;
+				// new Element rightNode is null;
+				newRightNode = null;
+				await updateElement(newElementId, newLeftNode, newRightNode);
 			}
-			showAlert('success', msg, 50);
+			showAlert('success', msg, 5);
 			window.setTimeout(() => {
 				location.assign(`/game/${language}`);
-			}, 50000);
+			}, 5000);
 		}
 	} catch (err) {
 		console.error(err);
-		showAlert('error', err.response.data.message, 10);
+		showAlert('error', err.response.data.message, 5);
 	}
 };

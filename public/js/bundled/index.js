@@ -596,21 +596,17 @@ const singularEl = document.getElementById("singular");
 const pluralEl = document.getElementById("plural");
 const exampleEl = document.getElementById("example");
 const questionEl = document.getElementById("question");
-const fieldsetEl = document.querySelector("fieldset");
-const inputYesEl = document.getElementById("input-yes");
-const inputNoEl = document.getElementById("input-no");
 const buttonDoneEl = document.getElementById("done");
 const buttonSendEl = document.getElementById("send");
 const subtitleEl = document.querySelector(".page-subtitle");
 const lblPluralEl = document.getElementById("lbl-plural");
 const lblExampleEl = document.getElementById("lbl-example");
 const lblQuestionEl = document.getElementById("lbl-question");
-const lblAnswerEl = document.getElementById("lbl-answer");
 const getLangFromURL = ()=>{
     const url = window.location.href;
     const game = url.indexOf("/game/");
-    console.log(url, game);
-    console.log(url.slice(game + 6, game + 11));
+    // console.log(url, game);
+    // console.log(url.slice(game + 6, game + 11));
     return url.slice(game + 6, game + 11);
 };
 const replaceVariable = (element, value)=>{
@@ -619,7 +615,7 @@ const replaceVariable = (element, value)=>{
     return elementValue;
 };
 window.addEventListener("load", (e)=>{
-    console.log("Listener for Cards after pageload");
+    // console.log('Listener for Cards after pageload');
     // DOM for all card__heading
     const cardHeadingAllEl = document.querySelectorAll("h3.card__footing, h3.card__heading");
     // If I have any card__heading elements, I'm at game page, need to work on cards
@@ -638,33 +634,31 @@ window.addEventListener("load", (e)=>{
     if (runGameEl && exampleEl) exampleEl.focus();
 });
 // Check for the Create Type Page
-if (createTypeEl) {
-    console.log("Listener for Create Type Page");
-    singularEl.addEventListener("focusout", (e)=>{
-        const singular = singularEl.value;
-        if (singular) {
-            // Find and show Plural
-            const lang = getLangFromURL();
-            const plural = (0, _plural.getPlural)(singular, lang);
-            pluralEl.value = plural;
-            pluralEl.classList.toggle("input__inactive");
-            lblPluralEl.classList.toggle("input__inactive");
-            // Show example
-            exampleEl.classList.toggle("input__inactive");
-            replaceVariable(lblExampleEl, singular);
-            lblExampleEl.classList.toggle("input__inactive");
-            // Set focus on Example
-            exampleEl.focus();
-        }
-    });
-}
+if (createTypeEl) // console.log('Listener for Create Type Page');
+singularEl.addEventListener("focusout", (e)=>{
+    const singular = singularEl.value;
+    if (singular) {
+        // Find and show Plural
+        const lang = getLangFromURL();
+        const plural = (0, _plural.getPlural)(singular, lang);
+        pluralEl.value = plural;
+        pluralEl.classList.toggle("input__inactive");
+        lblPluralEl.classList.toggle("input__inactive");
+        // Show example
+        exampleEl.classList.toggle("input__inactive");
+        replaceVariable(lblExampleEl, singular);
+        lblExampleEl.classList.toggle("input__inactive");
+        // Set focus on Example
+        exampleEl.focus();
+    }
+});
 // DOM for Run Game
 const runGameEl = document.getElementById("run-game");
 const buttonYesEl = document.getElementById("button-yes");
 const buttonNoEl = document.getElementById("button-no");
 // Check for the Run Game Page
 if (runGameEl && buttonYesEl && buttonNoEl) {
-    console.log("Listeners for Run Game Page");
+    // console.log('Listeners for Run Game Page');
     buttonYesEl.addEventListener("click", (e)=>{
         const { typeId } = runGameEl.dataset;
     });
@@ -672,9 +666,10 @@ if (runGameEl && buttonYesEl && buttonNoEl) {
         const { typeId } = runGameEl.dataset;
     });
 }
-// Elements that appear in both pages
+// Elements that appear in both runGame and addType pages
 if (runGameEl || createTypeEl) {
-    console.log("Listeners for both pages");
+    // console.log('Listeners for both pages');
+    //Handles Example field
     if (exampleEl) exampleEl.addEventListener("focusout", (e)=>{
         // Learning a new Animal, either by runGameLearn or by createType
         const example = exampleEl.value;
@@ -687,69 +682,36 @@ if (runGameEl || createTypeEl) {
             questionEl.focus();
         }
     });
+    // Handles Question field
     if (questionEl) questionEl.addEventListener("focusout", (e)=>{
         const question = questionEl.value;
         if (question) {
             // Question has been filled - show Done or Send buttons
             const example = exampleEl.value;
-            // answerEl.classList.toggle('input__inactive');
-            // if (createTypeEl) {
-            // 	if (!lblAnswerEl.innerText.endsWith(`${example}?`))
-            // 		lblAnswerEl.innerText = lblAnswerEl.innerText.replace('?', `${example}?`);
-            // }
-            // lblAnswerEl.classList.toggle('input__inactive');
-            // fieldsetEl.classList.toggle('input__inactive');
+            //Create Type shows message "Ready to learn about {{VARIABLE}}"
             if (createTypeEl) {
                 const plural = pluralEl.value;
                 replaceVariable(subtitleEl, `${plural}!`);
             }
             subtitleEl.classList.toggle("input__inactive");
+            // Button Done
             if (buttonDoneEl) {
                 buttonDoneEl.classList.toggle("input__inactive");
                 buttonDoneEl.classList.toggle("btn");
             }
+            //Button Send
             if (buttonSendEl) {
                 buttonSendEl.classList.toggle("input__inactive");
                 buttonSendEl.classList.toggle("btn");
             }
         }
     });
-    // if (inputYesEl)
-    // 	inputYesEl.addEventListener('change', (e) => {
-    // 		const inputYes = inputYesEl.checked;
-    // 		if (inputYes) {
-    // 			let plural;
-    // 			if (createTypeEl) plural = pluralEl.value;
-    // 			inputNoEl.checked = false;
-    // 			subtitleEl.classList.toggle('input__inactive');
-    // 			buttonDoneEl.classList.toggle('input__inactive');
-    // 			buttonDoneEl.classList.toggle('btn');
-    // 			if (createTypeEl) {
-    // 				let finalMsg = subtitleEl.innerText;
-    // 				finalMsg = finalMsg.replace('!', `${plural}!`);
-    // 				subtitleEl.innerText = finalMsg;
-    // 			}
-    // 		}
-    // 	});
-    // if (inputNoEl)
-    // 	inputNoEl.addEventListener('change', (e) => {
-    // 		const inputNo = inputNoEl.checked;
-    // 		if (inputNo) {
-    // 			const plural = pluralEl.value;
-    // 			inputYesEl.checked = false;
-    // 			subtitleEl.classList.toggle('input__inactive');
-    // 			buttonDoneEl.classList.toggle('input__inactive');
-    // 			buttonDoneEl.classList.toggle('btn');
-    // 			let finalMsg = subtitleEl.innerText;
-    // 			finalMsg = finalMsg.replace('!', `${plural}!`);
-    // 			subtitleEl.innerText = finalMsg;
-    // 		}
-    // 	});
+    // Listen for Button Done Click
     if (buttonDoneEl) buttonDoneEl.addEventListener("click", async (e)=>{
         e.preventDefault();
+        // CreateType and CreateElement (firstElement)
         const example = exampleEl.value;
         const question = questionEl.value;
-        //const answer = inputNoEl.checked ? false : true;
         const language = getLangFromURL();
         const singular = singularEl.value;
         const plural = pluralEl.value;
@@ -779,19 +741,22 @@ if (runGameEl || createTypeEl) {
             fromOperation: "firstElement",
             msg
         };
-        console.log(dataFirst);
-        console.log(parameters);
+        // console.log(dataFirst);
+        // console.log(parameters);
         const res = await (0, _createElement.createElement)(dataFirst, parameters);
     });
+    // Listen for Button Send Click
     if (buttonSendEl) buttonSendEl.addEventListener("click", async (e)=>{
+        // CreateElement (firstElement)
         e.preventDefault();
         const example = exampleEl.value;
         const question = questionEl.value;
+        // gets info from Form element
         let { fromElement, typeId, language, msg } = runGameEl.dataset;
+        // gets info from Button element
         const { fromOperation, fromElementLeft, fromElementRight } = buttonSendEl.dataset;
-        console.log("Before replace", msg);
+        // sets message
         msg = msg.replace("{{VARIABLE}}", example);
-        console.log("After replace", msg);
         const data = {
             name: example,
             type: typeId,
@@ -46004,10 +45969,8 @@ var _axios = require("axios");
 var _axiosDefault = parcelHelpers.interopDefault(_axios);
 var _alerts = require("./alerts");
 const updateElement = async (elementId, leftNode, rightNode)=>{
-    console.log("Here is UPDATE");
-    console.log(elementId, leftNode, rightNode);
-    // if (leftNode !== null) leftNode = leftNode.toString();
-    // if (rightNode) rightNode = rightNode.toString();
+    // console.log('Here is UPDATE');
+    // console.log(elementId, leftNode, rightNode);
     const api = `/api/v1/elements/${elementId}`;
     const data = {
         leftNode,
@@ -46048,9 +46011,10 @@ const createElement = async (data, parameters = {})=>{
         const res = await (0, _axiosDefault.default)(options);
         // successfull
         if (res.data.status === "success") {
+            const newElementId = res.data.data.elements._id;
+            let newLeftNode, newRightNode;
             if (fromOperation !== "firstElement") {
-                const newElementId = res.data.data.elements._id;
-                let leftNode, rightNode, newLeftNode, newRightNode;
+                let leftNode, rightNode;
                 if (fromOperation === "learnLeft") {
                     // from Element new leftNode is the new element;
                     leftNode = newElementId;
@@ -46071,19 +46035,26 @@ const createElement = async (data, parameters = {})=>{
                     newRightNode = fromElementRight === "null" ? null : fromElement;
                 }
                 // Update the from Element binary tree data with a pointer to the new element
-                console.log(fromElement);
-                console.log("Will update FROM Element", fromElement);
+                // console.log(fromElement);
+                // console.log('Will update FROM Element', fromElement);
                 await updateElement(fromElement, leftNode, rightNode);
                 await updateElement(newElementId, newLeftNode, newRightNode);
+            } else {
+                // First Elements only
+                // new Element leftNode is itself
+                newLeftNode = newElementId;
+                // new Element rightNode is null;
+                newRightNode = null;
+                await updateElement(newElementId, newLeftNode, newRightNode);
             }
-            (0, _alerts.showAlert)("success", msg, 50);
+            (0, _alerts.showAlert)("success", msg, 5);
             window.setTimeout(()=>{
                 location.assign(`/game/${language}`);
-            }, 50000);
+            }, 5000);
         }
     } catch (err) {
         console.error(err);
-        (0, _alerts.showAlert)("error", err.response.data.message, 10);
+        (0, _alerts.showAlert)("error", err.response.data.message, 5);
     }
 };
 

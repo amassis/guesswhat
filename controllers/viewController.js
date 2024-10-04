@@ -1,14 +1,9 @@
-// const Tour = require('../models/tourModel');
-// const Booking = require('../models/bookingModel');
-// const Review = require('../models/reviewModel');
 const Type = require('../models/TypeModel');
 const Element = require('../models/ElementModel');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 const messages = require('../utils/messages');
-const elementController = require('./elementController');
 let { DEBUG, debug, fctName } = require('../utils/debug');
-const { chdir } = require('process');
 
 countElementsForType = catchAsync(async (type) => {
 	const elements = await Element.find({ type });
@@ -22,6 +17,7 @@ exports.setDefaultLanguage = (req, res, next) => {
 };
 
 exports.resetType = (req, res, next) => {
+	// Middleware - when resets res.locals.type
 	let debugStep = 0;
 	const debugLevel = 1;
 	const debugMe = 'resetType ';
@@ -33,9 +29,10 @@ exports.resetType = (req, res, next) => {
 };
 
 exports.setType = async (req, res, next) => {
+	// Middleware - when sets res.locals.type and loads type
 	let debugStep = 0;
 	const debugLevel = 1;
-	const debugMe = 'setType ';
+	const debugMe = 'setType';
 	DEBUG = false;
 
 	const { typeId } = req.params;
@@ -50,14 +47,6 @@ exports.setType = async (req, res, next) => {
 	res.locals.type = type;
 	next();
 };
-
-// exports.loadFooterStrings = catchAsync(async (req, res, next) => {
-// 	req.footer = {};
-// 	req.footer.aboutUs = await messages('aboutUs', req.params.lang);
-// 	req.footer.contact = await messages('contact', req.params.lang);
-// 	req.footer.copyright = await messages('copyright', req.params.lang);
-// 	next();
-// });
 
 const fetchLang = async (langCode) => {
 	// Build lang object for home page
@@ -88,7 +77,6 @@ exports.goHome = catchAsync(async (req, res, next) => {
 		title: 'GuessWhat?',
 		home: '',
 		langs,
-		// footer,
 	});
 });
 
@@ -124,7 +112,6 @@ exports.goToGame = catchAsync(async (req, res, next) => {
 		gameStrings,
 		plural,
 		types,
-		// footer: req.footer,
 	});
 });
 
@@ -136,7 +123,7 @@ exports.addType = catchAsync(async (req, res, next) => {
 
 	if (DEBUG) debug(debugLevel, req.params, 'Parameters - should have lang', debugMe, ++debugStep);
 
-	// Load gameStrings in correct Language
+	// Load addStrings in correct Language
 	const addStrings = {};
 	const language = req.params.lang;
 	addStrings.title = await messages('whatDoYouWantToTeachMe', language);
@@ -160,47 +147,8 @@ exports.addType = catchAsync(async (req, res, next) => {
 	});
 });
 
-// const analyzeAnswerOLD = async (elementId, answer, validated = false) => {
-// 	let debugStep = 0;
-// 	const debugLevel = 1;
-// 	const debugMe = 'analyzeAnswer';
-
-// 	if (DEBUG) debug(debugLevel, { elementId, answer, validated }, 'Analyze results: ', debugMe, ++debugStep);
-
-// 	elementId = elementId.toString();
-// 	if (answer) {
-// 		answer = answer.toString();
-// 		if (DEBUG) debug(debugLevel, { elementId, answer, validated }, 'There is answer: ', debugMe, ++debugStep);
-// 		if (answer === elementId) {
-// 			if (DEBUG) debug(debugLevel, { elementId, answer, validated }, 'Equal: VALIDATE SUCCESS', debugMe, ++debugStep);
-// 			if (validated) {
-// 				if (DEBUG) debug(debugLevel, { elementId, answer, validated }, 'Validated: Success', debugMe, ++debugStep);
-// 				const willReturn = { destiny: `${elementId}/success`, validate: false };
-// 				if (DEBUG) debug(debugLevel, willReturn, 'Will Return', debugMe, ++debugStep);
-// 				return willReturn;
-// 			} else {
-// 				if (DEBUG) debug(debugLevel, { elementId, answer, validated }, 'Not Validated: Validate', debugMe, ++debugStep);
-// 				const willReturn = { destiny: `${elementId}/validate`, validate: true };
-// 				if (DEBUG) debug(debugLevel, willReturn, 'Will Return', debugMe, ++debugStep);
-// 				return willReturn;
-// 				//return `${elementId}`; // NA VALIDATE, "JA SEI, É TAL CARA" ACERTOU!! ERROU !!! SE O USUARIO CONFIRMAR, aí é SUCCESS, SE NÃO, também é LEARN BUG
-// 			}
-// 		} else {
-// 			if (DEBUG) debug(debugLevel, { elementId, answer, validated }, 'Not Equal: Jump to answer', debugMe, ++debugStep);
-// 			const willReturn = { destiny: `${answer}`, validate: false };
-// 			if (DEBUG) debug(debugLevel, willReturn, 'Will Return', debugMe, ++debugStep);
-// 			return willReturn;
-// 		}
-// 	} else {
-// 		if (DEBUG) debug(debugLevel, { elementId, answer, validated }, ' No answer: Jump to learn', debugMe, ++debugStep);
-// 		const willReturn = { destiny: `${elementId}/learn`, validate: false };
-// 		if (DEBUG) debug(debugLevel, willReturn, 'Will Return', debugMe, ++debugStep);
-// 		return willReturn;
-// 	}
-// };
-
 const prepareDestinations = async (prevElement, currentElement, operation) => {
-	// BUG A chave do BUG está aqui
+	// Designs the flow of the game by setting actions and destinations for left and right nodes
 	let debugStep = 0;
 	const debugLevel = 1;
 	const debugMe = 'prepareDestinations';
@@ -219,14 +167,17 @@ const prepareDestinations = async (prevElement, currentElement, operation) => {
 			++debugStep,
 		);
 
+	// If this is a guess, left means success, right means learn new element
 	if (operation.startsWith('guess')) {
 		response.operationLeft = 'success';
 		response.operationRight = `learn${operation.slice(5)}`;
-		// response.operationRight = operation === 'guessLeft' ? 'learnRight' : 'learnLeft';
 		response.nextnodeLeft = elementId;
-		response.nextnodeRight = prevElement;
+		response.nextnodeRight = elementId;
 	} else {
+		// Left Node is not null
 		if (left) {
+			// If we have been through left before, or if left is the current element, we should guess it
+			// otherwise, navigate left
 			if (prevElement.includes(left)) {
 				response.operationLeft = 'guessLeft';
 				response.nextnodeLeft = left;
@@ -238,11 +189,15 @@ const prepareDestinations = async (prevElement, currentElement, operation) => {
 				response.nextnodeLeft = left;
 			}
 		} else {
+			// Null left node means Learn new Left node
 			response.operationLeft = 'learnLeft';
 			response.nextnodeLeft = elementId;
 		}
 
+		// Right Node is not null
 		if (right) {
+			// If we have been through right before, or if right is the current element, we should guess it
+			// otherwise, navigate right
 			if (prevElement.includes(right)) {
 				response.operationRight = 'guessRight';
 				response.nextnodeRight = right;
@@ -254,77 +209,11 @@ const prepareDestinations = async (prevElement, currentElement, operation) => {
 				response.nextnodeRight = right;
 			}
 		} else {
+			// Null right node means Learn new Right node
 			response.operationRight = 'learnRight';
 			response.nextnodeRight = elementId;
 		}
 	}
-	// const leftNode = element.leftNode?.toString();
-	// const rightNode = element.rightNode?.toString();
-	// const destination = {};
-	// // Prepare Destination Left (Yes)
-	// if (leftNode) {
-	// 	// There is a path for Yes
-	// 	destination.nextnodeYes = leftNode;
-	// 	destination.operation = 'askLeft';
-	// } else {
-	// 	destination.nextnodeYes = element._id;
-	// 	destination.operation = 'guessLeft';
-	// }
-
-	// let guessOrSuccess = 'guess';
-	// let askOrLearn = 'ask';
-	// let side = 'Right';
-	// if (operation === 'guess') {
-	// 	// Guess is done, equality means success
-	// 	guessOrSuccess = 'success';
-	// 	askOrLearn = 'learn';
-	// 	side = 'Left';
-	// }
-	// if (DEBUG) debug(debugLevel, { guessOrSuccess, side, askOrLearn }, 'G/S side A/L', debugMe, ++debugStep);
-	// if (!(currentElement.leftNode || currentElement.rightNode)) {
-	// 	response.nextnodeYes = currentElement._id.toString();
-	// 	response.operationLeft = guessOrSuccess;
-	// 	response.nextnodeNo = currentElement._id.toString();
-	// 	if (operation !== 'guess') response.operationRight = 'learnRight';
-	// 	else response.operationRight = 'learnLeft';
-	// }
-
-	// if (currentElement.leftNode && !currentElement.rightNode) {
-	// 	// BUG Tá batendo aqui e indo pra guess quando deveria ir pra cachorro.
-	// 	if (currentElement._id.toString() !== nextElement) {
-	// 		response.nextnodeYes = currentElement.leftNode.toString();
-	// 		response.operationLeft = 'askLeft';
-	// 		response.nextnodeNo = currentElement._id.toString();
-	// 		response.operationRight = 'learnRight';
-	// 	} else {
-	// 		response.nextnodeYes = operation === 'guess' ? currentElement._id.toString() : currentElement.leftNode.toString();
-	// 		response.operationLeft = `${askOrLearn}${side}`;
-	// 		response.nextnodeNo = currentElement._id.toString();
-	// 		response.operationRight = guessOrSuccess;
-	// 	}
-	// }
-
-	// if (currentElement.rightNode && !currentElement.leftNode) {
-	// 	if (currentElement._id.toString() !== nextElement) {
-	// 		response.nextnodeYes = currentElement._id.toString();
-	// 		response.operationLeft = 'learnLeft';
-	// 		response.nextnodeNo = currentElement.rightNode.toString();
-	// 		response.operationRight = 'askRight';
-	// 	} else {
-	// 		response.nextnodeYes = currentElement._id.toString();
-	// 		response.operationLeft = guessOrSuccess;
-	// 		response.nextnodeNo = operation === 'guess' ? currentElement._id.toString() : currentElement.rightNode.toString();
-	// 		response.operationRight = `${askOrLearn}${side}`; //ERA RIGHT
-	// 	}
-	// }
-	// if (currentElement.rightNode && currentElement.leftNode) {
-	// 	response.nextnodeYes = currentElement.leftNode.toString();
-	// 	response.operationLeft = 'askLeft';
-	// 	response.nextnodeNo = currentElement.rightNode.toString();
-	// 	response.operationRight = 'askRight';
-	// }
-	// response.prevNode = prevElement;
-
 	return response;
 };
 
@@ -332,11 +221,13 @@ exports.runGame = catchAsync(async (req, res, next) => {
 	let debugStep = 0;
 	const debugLevel = 1;
 	const debugMe = 'runGame';
-	// BUG
-	// Quando eu disse que late e criei a foca, em vez de a foca se relacionar com o left do dog, ficou com o right e sobrepôs Lion.
-	// assim, o "From" que eu estou passando está errado. No Guess tem que manter a o Left/Right da operação anterior e não do próprio Guess.
+
+	// Params bring the type, Element, current Operation and current Destination
 	if (DEBUG) debug(debugLevel, req.params, 'INIT - Parameters received', debugMe, ++debugStep);
 	let { typeId, elementId, operation, nextElement } = req.params;
+
+	// Query brings the whole tree of elements we've been through before
+	// load the elements into prevElement array
 	if (DEBUG) debug(debugLevel, req.query, 'INIT - Query received', debugMe, ++debugStep);
 	let prevElement = [];
 	const queryPrevious = req.query.eID;
@@ -349,11 +240,11 @@ exports.runGame = catchAsync(async (req, res, next) => {
 			prevElement.push(queryPrevious);
 		}
 	}
+
+	// sets correct page to render
 	let page = 'runGame';
 	if (operation && operation.startsWith('learn')) page = 'runGameLearn';
 	if (operation && operation === 'success') page = `runGameSuccess`;
-	//if (!operation.startsWith('guess')) {
-	//}
 	prevElement.push(nextElement);
 	elementId = nextElement;
 
@@ -369,16 +260,17 @@ exports.runGame = catchAsync(async (req, res, next) => {
 	// Load type
 	let type;
 	if (!res.locals.type) {
+		// This shouldn't happen, it's just for safety, type shouldn't change during the game.
+		// type should have been loaded in a previous middleware into res.locals.type
 		type = await Type.findById({ _id: typeId });
-
 		if (!type) return next(new AppError(`Type ${typeId} was not found`, 404));
-
 		if (DEBUG) debug(debugLevel, type, 'Here is the type I found ', debugMe, ++debugStep);
 		res.locals.type = type;
 	} else {
 		type = res.locals.type;
 	}
 
+	// should no longer be required, kept for safety
 	if (!elementId) {
 		elementId = type.elements[0];
 	}
@@ -386,14 +278,13 @@ exports.runGame = catchAsync(async (req, res, next) => {
 	// Load element
 	const element = await Element.findById({ _id: elementId });
 
+	// This should not happen, just extra safety
 	if (!element) return next(new AppError(`Element ${elementId} was not found`, 404));
 	if (DEBUG) debug(debugLevel, element, 'Here is the element I found ', debugMe, ++debugStep);
 
-	//if (res.locals.fromElement) fromElement = res.locals.fromElement;
-
+	// Sets the next possible responses operation and destination for left and right nodes
 	const destination = await prepareDestinations(prevElement, element, operation);
-
-	//res.locals.fromElement = element; // BUG não funciona porque é a última etapa do pipeline de middleware - não guarda depois disso. Acho que teria que usar um cookie no index.js pra guardar o elemento anterior ???
+	if (DEBUG) debug(debugLevel, destination, 'Destinations for page', debugMe, ++debugStep);
 
 	// Load runStrings in correct Language
 	const language = type.language;
@@ -402,12 +293,14 @@ exports.runGame = catchAsync(async (req, res, next) => {
 	runStrings.subtitle = await messages('thinkAboutElement_SINGULAR', language, type.type.singular);
 
 	if (operation) {
+		// loads Success strings
 		if (operation === 'success') {
 			runStrings.title = await messages('success_ELEMENT', language, element.name);
 			runStrings.subtitle = await messages('gameWins', language);
 			runStrings.letsGoSame = await messages('letsGoSame', language);
 			runStrings.letsGoDifferent = await messages('letsGoDifferent', language);
 		}
+		// loads learn strings
 		if (operation.startsWith('learn')) {
 			runStrings.title = await messages('playerWins', language);
 			runStrings.subtitle = await messages('timeToLearnNew_SINGULAR', language, type.type.singular);
@@ -420,14 +313,16 @@ exports.runGame = catchAsync(async (req, res, next) => {
 			runStrings.newElementMsg = await messages('newElementInserted_DOM_ELEMENT', language);
 			console.log('After', runStrings.newElementMsg);
 		}
+		// loads guess strings
 		if (operation.startsWith('guess')) runStrings.guess = await messages('validate_ELEMENT', language, element.name);
 	}
+	// loads common strings
 	runStrings.yesString = await messages('yes', language);
 	runStrings.noString = await messages('no', language);
-	const isGuess = operation.startsWith('guess');
-	query = `?eID=${prevElement.join('&eID=')}`; // sends all tree in query
 
-	if (DEBUG) debug(debugLevel, destination, 'Destinations for page', debugMe, ++debugStep);
+	const isGuess = operation.startsWith('guess');
+	query = `?eID=${prevElement.join('&eID=')}`; // sends all of previous tree elements in query string
+
 	// Render runGame page
 	res.status(200).render(page, {
 		title: 'GuessWhat?',
@@ -442,200 +337,7 @@ exports.runGame = catchAsync(async (req, res, next) => {
 	});
 });
 
-// exports.runGameOLD = catchAsync(async (req, res, next) => {
-// 	let debugStep = 0;
-// 	const debugLevel = 1;
-// 	const debugMe = 'runGame';
-
-// 	//
-// 	//
-// 	// BUG
-// 	// Furo de lógica: Falta a pergunta final. "É tal elemento?" e aí precisa mais um sim ou não, para depois decidir se houve sucesso
-// 	//
-// 	//
-
-// 	if (DEBUG)
-// 		debug(
-// 			debugLevel,
-// 			req.params,
-// 			'Parameters - should have type; might have element and/or result',
-// 			debugMe,
-// 			++debugStep,
-// 		);
-
-// 	// get type and result from params. Result can be either success, learn or non-existent
-// 	let { typeId, elementId, result, btn } = req.params;
-// 	let validated;
-
-// 	let page = 'runGame';
-// 	if (result && result !== 'validate') page = `runGame${result}`;
-
-// 	if (result === 'validate') validated = true;
-
-// 	if (DEBUG) debug(debugLevel, { result, page }, 'Here are result and page', debugMe, ++debugStep);
-
-// 	// Load type
-// 	const type = await Type.findById({ _id: typeId });
-
-// 	if (!type) return next(new AppError(`Type ${typeId} was not found`, 404));
-
-// 	if (DEBUG) debug(debugLevel, type, 'Here is the type I found ', debugMe, ++debugStep);
-
-// 	if (!elementId) {
-// 		elementId = type.elements[0];
-// 	}
-
-// 	// Load element
-// 	const element = await Element.findById({ _id: elementId });
-
-// 	if (!element) return next(new AppError(`Element ${elementId} was not found`, 404));
-
-// 	if (DEBUG) debug(debugLevel, element, 'Here is the element I found ', debugMe, ++debugStep);
-
-// 	const { destiny: destinyTrue, validate: validateTrue } = await analyzeAnswer(
-// 		element._id,
-// 		element.leftNode,
-// 		validated,
-// 	);
-// 	let destinyFalse;
-// 	if (result !== 'validate') {
-// 		({ destiny: destinyFalse } = await analyzeAnswer(element._id, element.rightNode, validated));
-// 	}
-// 	if (result === 'validate') {
-// 		({ destiny: destinyFalse } = await analyzeAnswer(element._id, null, validated));
-// 	}
-
-// 	//const validate = validateTrue || validateFalse;
-
-// 	if (DEBUG) debug(debugLevel, { destinyTrue, destinyFalse }, 'True, False  after analyze', debugMe, ++debugStep);
-// 	// Load runStrings in correct Language
-// 	const language = type.language;
-// 	const runStrings = {};
-// 	if (result) {
-// 		if (result === 'success') {
-// 			runStrings.title = await messages('success_ELEMENT', language, element.name);
-// 			runStrings.subtitle = await messages('gameWins', language);
-// 		}
-// 		if (result === 'learn') {
-// 			runStrings.title = await messages('playerWins', language);
-// 			runStrings.subtitle = await messages('timeToLearnNew_SINGULAR', language, type.type.singular);
-// 			runStrings.yourElement = await messages('whichElementDidYouThinkAbout_SINGULAR', language, type.type.singular);
-// 			runStrings.question = await messages('tellMeYesNoQuestionToIdentify_SINGULAR', language, type.type.singular);
-// 			runStrings.newAnswer = await messages('whatIsTheAnswerFor_SINGULAR', language, type.type.singular);
-// 			runStrings.send = await messages('send', language);
-// 			runStrings.thanks = await messages('iLoveLearningNewThings', language);
-// 			runStrings.newElement = await messages('newElementInserted_ELEMENT', language);
-// 		}
-// 		if (result === 'validate') runStrings.validate = await messages('validate_ELEMENT', language, element.name);
-// 	}
-// 	runStrings.title = await messages('letsPlayGuess', language);
-// 	runStrings.subtitle = await messages('thinkAboutElement_SINGULAR', language, type.type.singular);
-// 	runStrings.yesString = await messages('yes', language);
-// 	runStrings.noString = await messages('no', language);
-
-// 	if (DEBUG) debug(debugLevel, { destinyTrue, destinyFalse }, 'True, False & Validate into page', debugMe, ++debugStep);
-// 	// Render runGame page
-// 	res.status(200).render(page, {
-// 		title: 'GuessWhat?',
-// 		home: `game/${language}`,
-// 		runStrings,
-// 		type,
-// 		element,
-// 		destinyTrue,
-// 		destinyFalse,
-// 		result,
-// 		btn,
-// 	});
-// });
-
-// exports.getTour = catchAsync(async (req, res, next) => {
-// 	const tour = await Tour.findOne({ slug: req.params.slug }).populate({
-// 		path: 'reviews',
-// 		fields: 'review, rating, user',
-// 	});
-
-// 	if (!tour) return next(new AppError('There is no tour with that name', 404));
-
-// 	//If logged in, get user id and check for booking
-// 	let hasBooking = false;
-// 	let hasReview = false;
-
-// 	if (res.locals.user) {
-// 		const booking = await Booking.findOne({
-// 			tour: tour.id,
-// 			user: res.locals.user.id,
-// 		});
-
-// 		const review = await Review.findOne({
-// 			tour: tour.id,
-// 			user: res.locals.user.id,
-// 		});
-// 		if (booking) hasBooking = true;
-// 		if (review) hasReview = true;
-// 	}
-
-// 	res.status(200).render('tour', {
-// 		title: `${tour.name} Tour`,
-// 		tour: tour,
-// 		myReviews: false,
-// 		hasBooking,
-// 		hasReview,
-// 	});
-// });
-
-// exports.getLoginForm = (req, res) => {
-// 	res.status(200).render('login', { title: 'Log into your account' });
-// };
-
-// exports.getSignupForm = (req, res) => {
-// 	res.status(200).render('signup', { title: 'Sign up to a new account' });
-// };
-
-// exports.getAccountForm = (req, res) => {
-// 	// console.log(res.locals.user);
-// 	res.status(200).render('account', { title: 'Your account' });
-// };
-
-// exports.passwordReset = (req, res, next) => {
-// 	// console.log(req.params.token);
-// 	res.status(200).render('resetPassword', {
-// 		title: 'Reset your Password',
-// 		token: req.params.token,
-// 	});
-// };
-
-// exports.getMyTours = catchAsync(async (req, res, next) => {
-// 	// console.log(req.user);
-// 	const bookings = await Booking.find({ user: req.user.id });
-
-// 	if (!bookings || bookings.length < 1)
-// 		return next(new AppError("You don't have any bookings", 404));
-
-// 	const myToursIds = bookings.map((bk) => bk.tour);
-// 	const myTours = await Tour.find({ _id: { $in: myToursIds } });
-
-// 	res.status(200).render('overview', {
-// 		title: `My Bookings`,
-// 		tours: myTours,
-// 	});
-// });
-
-// exports.getMyReviews = catchAsync(async (req, res, next) => {
-// 	// console.log(req.user);
-// 	const reviews = await Review.find({ user: req.user.id }).populate('tour');
-
-// 	if (!reviews || reviews.length < 1)
-// 		return next(new AppError("You don't have any reviews", 404));
-
-// 	// console.log(reviews);
-
-// 	res.status(200).render('myreviews', {
-// 		title: `My Reviews`,
-// 		reviews: reviews,
-// 		myReviews: true,
-// 	});
-// });
-
+// middleware available for eventual pre-route alerts; so far unused, "booking" kept as an example.
 exports.alerts = (req, res, next) => {
 	const { alert } = req.query;
 	if (alert === 'booking')
