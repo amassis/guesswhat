@@ -10,10 +10,7 @@ exports.deleteOne = (Model) =>
 		const docId = req.params.id;
 		const { collectionName } = Model.collection;
 		const doc = await Model.findByIdAndDelete(docId);
-		if (!doc)
-			return next(
-				new AppError(`Unable to find ${collectionName} with id ${docId}.`, 404)
-			);
+		if (!doc) return next(new AppError(`Unable to find ${collectionName} with id ${docId}.`, 404));
 		res.status(204).json({
 			status: 'success',
 			data: null,
@@ -36,11 +33,7 @@ exports.updateOne = (Model, options) =>
 			// Verify is all required parameters have been received and returns the missing parameters, if any
 			const missing = verifyObj(req.body, options.requiredArray);
 			if (missing.length > 0)
-				return next(
-					new AppError(
-						`Missing required attributes in message body: ${missing.join(', ')}`
-					)
-				);
+				return next(new AppError(`Missing required attributes in message body: ${missing.join(', ')}`));
 		}
 
 		let filteredBody = req.body;
@@ -64,10 +57,7 @@ exports.updateOne = (Model, options) =>
 			runValidators: true,
 		});
 
-		if (!doc)
-			return next(
-				new AppError(`Unable to find ${collectionName} with id ${docId}.`, 404)
-			);
+		if (!doc) return next(new AppError(`Unable to find ${collectionName} with id ${docId}.`, 404));
 
 		const data = {};
 		data[collectionName] = doc;
@@ -104,13 +94,7 @@ exports.getOne = (Model, options) =>
 
 		const doc = await query;
 
-		if (!doc)
-			return next(
-				new AppError(
-					`Unable to find ${collectionName} with id ${req.params.id}.`,
-					404
-				)
-			);
+		if (!doc) return next(new AppError(`Unable to find ${collectionName} with id ${req.params.id}.`, 404));
 		const data = {};
 		data[collectionName] = doc;
 		res.status(200).json({
@@ -123,11 +107,7 @@ exports.getAll = (Model) =>
 	catchAsync(async (req, res, next) => {
 		const { collectionName } = Model.collection;
 		// PREPARE Query with Features
-		const features = new APIFeatures(Model.find(), req.query)
-			.filter()
-			.sort()
-			.limitFields()
-			.paginate();
+		const features = new APIFeatures(Model.find(), req.query).filter().sort().limitFields().paginate();
 
 		//REXECUTE Query
 		// const docs = await features.query.explain();

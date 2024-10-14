@@ -42,6 +42,7 @@ export const createElement = async (data, parameters = {}) => {
 	console.log('Here is CREATE');
 	console.log(parameters);
 	console.log(data);
+
 	const options = {
 		method: 'POST',
 		url: '/api/v1/elements',
@@ -88,18 +89,20 @@ export const createElement = async (data, parameters = {}) => {
 			} else {
 				// First Elements only
 				// new Element leftNode is itself
+				console.log('Will update first Element');
+				console.log(newElementId);
 				newLeftNode = newElementId;
 				// new Element rightNode is null;
 				newRightNode = null;
 				await updateElement(newElementId, newLeftNode, newRightNode);
 			}
-			showAlert('success', msg, 5);
+			showAlert('success', msg, 3);
 			window.setTimeout(() => {
 				location.assign(`/game/${language}`);
-			}, 5000);
+			}, 3000);
 		}
 	} catch (err) {
 		console.error(err);
-		showAlert('error', err.response.data.message, 5);
+		showAlert('error', err.response.data.message, 6);
 	}
 };

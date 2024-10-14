@@ -183,7 +183,12 @@ if (runGameEl || createTypeEl) {
 			};
 			// console.log(dataFirst);
 			// console.log(parameters);
-			const res = await createElement(dataFirst, parameters);
+
+			// TODO ENHANCE this so I don't need to use timeout. Is there a way to for async/await to work here??
+			// Waits 3 seconds before calling createElement
+			window.setTimeout(async () => {
+				const res = await createElement(dataFirst, parameters);
+			}, 3000);
 		});
 
 	// Listen for Button Send Click

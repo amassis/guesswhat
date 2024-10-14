@@ -2,18 +2,56 @@ const fs = require('fs');
 const imageDownloader = require('image-downloader');
 const Unsplash = require('unsplash-js');
 const sharp = require('sharp'); // image processing
+const { translate } = require('bing-translate-api');
 const Type = require('../models/TypeModel');
 const Element = require('../models/ElementModel');
 const factory = require('./handlerFactory');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
-const { DEBUG, debug, fctName } = require('../utils/debug');
+let { DEBUG, debug, fctName } = require('../utils/debug');
 
 exports.getAllTypes = factory.getAll(Type);
 exports.getType = factory.getOne(Type);
 exports.createType = factory.createOne(Type);
 exports.updateType = factory.updateOne(Type);
 exports.deleteType = factory.deleteOne(Type);
+
+exports.translateType = catchAsync(async (req, res, next) => {
+	//
+	let debugStep = 0;
+	const debugLevel = 1;
+	const debugMe = 'translateType';
+
+	const { typeId, fromLang, toLang } = req.params;
+	const toLangCode = toLang.slice(0, 2);
+
+	// Load type
+	const type = req.body;
+	if (!type) return next(new AppError(`Type ${typeId} was not found`, 404));
+	if (DEBUG) debug(debugLevel, type, 'Here is the type I found ', debugMe, ++debugStep);
+
+	let text = '';
+	const newType = { ...type };
+	newType._id = undefined;
+
+	text = await translate(type.type.singular, fromLang, toLangCode);
+	const singular = text.translation;
+	text = await translate(type.type.plural, fromLang, toLangCode);
+	const plural = text.translation;
+	newType.type = {
+		singular,
+		plural,
+	};
+
+	text = await translate(type.example, fromLang, toLangCode);
+	newType.example = text.translation;
+	text = await translate(type.question, fromLang, toLangCode);
+	newType.question = text.translation;
+	newType.language = toLang;
+	newType.originalType = type._id;
+
+	newTypeCreated = await Type.create(newType);
+});
 
 exports.resizeTypePhoto = catchAsync(async (req, res, next) => {
 	// if (!req.file) return next();
@@ -62,6 +100,8 @@ exports.getTypeImage = catchAsync(async (req, res, next) => {
 	if (DEBUG) debug(debugLevel, unsplashPhotos, 'Return from Unsplash', debugMe, ++debugStep);
 	if (unsplashPhotos.type !== 'success') return next(new AppError('Unsplash Query Error', 400));
 
+	const response = unsplashPhotos.response[Math.trunc(Math.random() * 10)];
+
 	const {
 		id,
 		slug,
@@ -69,8 +109,11 @@ exports.getTypeImage = catchAsync(async (req, res, next) => {
 		height,
 		urls: { regular, small, thumb, small_s3 },
 		links: { html, download, download_location },
-		user: { name, portfolio_url },
-	} = unsplashPhotos.response[Math.trunc(Math.random() * 10)];
+		user: {
+			name,
+			links: { html: authorHtml },
+		},
+	} = response;
 
 	if (DEBUG)
 		debug(
@@ -81,10 +124,14 @@ exports.getTypeImage = catchAsync(async (req, res, next) => {
 				width,
 				height,
 				regular,
+				small,
+				thumb,
+				small_s3,
 				download_location,
 				download,
 				html,
 				name,
+				authorHtml,
 			},
 			'Photos: ',
 			debugMe,
@@ -113,6 +160,8 @@ exports.getTypeImage = catchAsync(async (req, res, next) => {
 	req.filename = filename;
 	req.filepath = filepath;
 	req.body.image = filename;
+	req.body.imageAuthor = name;
+	req.body.imageAuthorLink = authorHtml;
 	next();
 });
 

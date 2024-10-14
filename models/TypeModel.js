@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { translate } = require('bing-translate-api');
 const slugify = require('slugify');
 const validator = require('validator');
 const catchAsync = require('../utils/catchAsync');
@@ -41,6 +42,12 @@ const typeSchema = new mongoose.Schema(
 		image: {
 			type: String,
 		},
+		imageAuthor: {
+			type: String,
+		},
+		imageAuthorLink: {
+			type: String,
+		},
 		color: {
 			bg1: String,
 			bg2: String,
@@ -52,6 +59,10 @@ const typeSchema = new mongoose.Schema(
 				ref: 'Element',
 			},
 		],
+		originalType: {
+			type: mongoose.Schema.ObjectId,
+			ref: 'Type',
+		},
 	},
 	{
 		toJSON: { virtuals: true },
@@ -60,48 +71,58 @@ const typeSchema = new mongoose.Schema(
 );
 
 typeSchema.index({ type: 1, language: 1 }, { unique: true });
+typeSchema.index({ originalType: 1, language: 1 }, { unique: true });
 
 typeSchema.virtual('elementCount').get(function () {
 	return this.elements.length;
 });
 
-// typeSchema.statics.createFirstElement = async (type) => {
-// 	// Prepares basic Element data
-// 	const data = {
-// 		name: type.example,
-// 		type: type._id,
-// 		question: type.question,
-// 	};
-
-// 	// Create new Element with data
-// 	const element = await Element.create(data);
-
-// 	// Prepares element's binary Tree data
-// 	const bTree = {
-// 		leftNode: type.answer ? element._id : null,
-// 		rightNode: type.answer ? null : element._id,
-// 	};
-
-// 	// Updates Element with Binary Tree
-// 	const updatedElement = await Element.findByIdAndUpdate(element._id, bTree, {
-// 		new: true,
-// 		runValidators: true,
-// 	});
-
-// 	return updatedElement._id;
-// };
-
-// typeSchema.pre('save', function (next) {
-// 	this.wasNew = this.isNew;
-// 	next();
-// });
+//BUG CANNOT TRANSLATE TYPE IN THE MODEL BECAUSE WE NEED TO CREATE THE FIRST ELEMENT AS WELL, and the Types must exist before element is created
+// TRANSLATE TYPE IN THE viewController AddType
 // typeSchema.post('save', async (type) => {
-// 	if (!this.wasNew) return;
+// 	if (type.originalType) return;
 
-// 	const elementId = await type.constructor.createFirstElement(type);
-// 	type.elements.push(elementId);
+// 	const langsToCreate = [];
+// 	if (type.language !== 'en_US') {
+// 		langsToCreate.push('en_US');
+// 	} else {
+// 		originalLang = 'en';
+// 	}
+// 	if (type.language !== 'pt_BR') {
+// 		langsToCreate.push('pt_BR');
+// 	} else {
+// 		originalLang = 'pt';
+// 	}
+// 	if (type.language !== 'es_ES') {
+// 		langsToCreate.push('es_ES');
+// 	} else {
+// 		originalLang = 'es';
+// 	}
 
-// 	await Type.updateOne({ _id: type._id }, { elements: type.elements });
+// 	langsToCreate.forEach(async (lang) => {
+// 		const langCode = lang.slice(0, 2);
+// 		let text = '';
+// 		const newType = {};
+// 		text = await translate(type.type.singular, originalLang, langCode);
+// 		const singular = text.translation;
+// 		text = await translate(type.type.plural, originalLang, langCode);
+// 		const plural = text.translation;
+// 		newType.type = {
+// 			singular,
+// 			plural,
+// 		};
+// 		text = await translate(type.example, originalLang, langCode);
+// 		newType.example = text.translation;
+// 		text = await translate(type.question, originalLang, langCode);
+// 		newType.question = text.translation;
+// 		newType.language = lang;
+// 		newType.color = type.color;
+// 		newType.image = type.image;
+// 		newType.originalType = type._id;
+// 		newType.answer = true;
+// 		newType.elements = [];
+// 		newTypeCreated = await Type.create(newType);
+// 	});
 // });
 
 const Type = mongoose.model('Type', typeSchema);

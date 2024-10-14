@@ -7,12 +7,10 @@ router.route('/').get(typeController.getAllTypes).post(
 	typeController.getTypeColor,
 	typeController.getTypeImage,
 	// typeController.resizeTypePhoto,
-	typeController.createType
+	typeController.createType,
 );
-router
-	.route('/:id')
-	.get(typeController.getType)
-	.patch(typeController.updateType)
-	.delete(typeController.deleteType);
+router.route('/:id').get(typeController.getType).patch(typeController.updateType).delete(typeController.deleteType);
+
+router.route('/:id/:fromLang/:toLang').post(typeController.translateType);
 
 module.exports = router;

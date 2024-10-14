@@ -39,9 +39,7 @@ exports.setType = async (req, res, next) => {
 
 	// Load type
 	const type = await Type.findById({ _id: typeId });
-
 	if (!type) return next(new AppError(`Type ${typeId} was not found`, 404));
-
 	if (DEBUG) debug(debugLevel, type, 'Here is the type I found ', debugMe, ++debugStep);
 
 	res.locals.type = type;
@@ -152,6 +150,7 @@ const prepareDestinations = async (prevElement, currentElement, operation) => {
 	let debugStep = 0;
 	const debugLevel = 1;
 	const debugMe = 'prepareDestinations';
+	DEBUG = true;
 
 	const elementId = currentElement._id.toString();
 	const left = currentElement.leftNode?.toString();

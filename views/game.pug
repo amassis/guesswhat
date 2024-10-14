@@ -21,6 +21,11 @@ block content
               img.card__picture-img(src=`/img/types/${type.image}`, alt=`${type.type.singular}`)
             h3.card__heading(data-bg1-color=`${type.color.bg1}`, data-bg2-color=`${type.color.bg2}`, data-font-color=`${type.color.font}`)
               span= type.elements.length
+            .card__picture-credits 
+              span Photo by
+                a(href=`${type.imageAuthorLink?type.imageAuthorLink:''}`)= type.imageAuthor
+              span  on
+                a(href=`https://unsplash.com/?utm_source=GuessWhat&utm_medium=referral`) Unsplash
           .card__footer
             h3.card__footing(data-bg1-color=`${type.color.bg1}`, data-bg2-color=`${type.color.bg2}`, data-font-color=`${type.color.font}`)
               a(href=`/rungame/${type._id}/${type.elements[0]}/ask/${type.elements[0]}`)

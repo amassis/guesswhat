@@ -116,6 +116,24 @@ h3 {
 	width: 100%;
 }
 
+.card__picture-credits,
+.card__picture-credits a {
+	position: relative;
+	z-index: 1;
+	font-size: 0.7rem;
+	font-weight: 300;
+	text-align: left;
+	color: #fff;
+	margin-left: 0.5rem;
+	margin-bottom: 0.5rem;
+	margin-top: -3rem;
+}
+
+.card__picture-credits a:hover,
+.card__picture-credits a:active {
+	color: #aaa;
+}
+
 .plus__sign-img {
 	padding-top: 2rem;
 }

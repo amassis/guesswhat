@@ -743,7 +743,11 @@ if (runGameEl || createTypeEl) {
         };
         // console.log(dataFirst);
         // console.log(parameters);
-        const res = await (0, _createElement.createElement)(dataFirst, parameters);
+        // TODO ENHANCE this so I don't need to use timeout. Is there a way to for async/await to work here??
+        // Waits 3 seconds before calling createElement
+        window.setTimeout(async ()=>{
+            const res = await (0, _createElement.createElement)(dataFirst, parameters);
+        }, 3000);
     });
     // Listen for Button Send Click
     if (buttonSendEl) buttonSendEl.addEventListener("click", async (e)=>{
@@ -1616,16 +1620,37 @@ const createType = async (data, parameters)=>{
     };
     try {
         const res = await (0, _axiosDefault.default)(options);
+        console.log("Will translate types");
+        let originalLang = "";
+        const type = res.data.data.types;
+        console.log("Starting Type");
+        console.log(type);
+        const langsToCreate = [];
+        if (type.language !== "en_US") langsToCreate.push("en_US");
+        else originalLang = "en";
+        if (type.language !== "pt_BR") langsToCreate.push("pt_BR");
+        else originalLang = "pt";
+        if (type.language !== "es_ES") langsToCreate.push("es_ES");
+        else originalLang = "es";
+        langsToCreate.forEach(async (lang)=>{
+            const url = `/api/v1/types/${type._id}/${originalLang}/${lang}`;
+            const optionsXlat = {
+                method: "POST",
+                url,
+                data: type
+            };
+            const resXlat = await (0, _axiosDefault.default)(optionsXlat);
+        });
         if (res.data.status === "success") {
-            (0, _alerts.showAlert)("success", parameters.msg);
+            (0, _alerts.showAlert)("success", parameters.msg, 2);
             window.setTimeout(()=>{
                 location.assign(`/game/${data.language}`);
-            }, 1500);
-            return res.data.data.types._id;
+            }, 3000);
+            return type._id;
         }
     } catch (err) {
         console.error(err);
-        (0, _alerts.showAlert)("error", err.response.data.message, 20);
+        (0, _alerts.showAlert)("error", err.response.data.message, 5);
     }
 };
 
@@ -46042,19 +46067,21 @@ const createElement = async (data, parameters = {})=>{
             } else {
                 // First Elements only
                 // new Element leftNode is itself
+                console.log("Will update first Element");
+                console.log(newElementId);
                 newLeftNode = newElementId;
                 // new Element rightNode is null;
                 newRightNode = null;
                 await updateElement(newElementId, newLeftNode, newRightNode);
             }
-            (0, _alerts.showAlert)("success", msg, 5);
+            (0, _alerts.showAlert)("success", msg, 3);
             window.setTimeout(()=>{
                 location.assign(`/game/${language}`);
-            }, 5000);
+            }, 3000);
         }
     } catch (err) {
         console.error(err);
-        (0, _alerts.showAlert)("error", err.response.data.message, 5);
+        (0, _alerts.showAlert)("error", err.response.data.message, 6);
     }
 };
 
